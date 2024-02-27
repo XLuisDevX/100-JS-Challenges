@@ -1,0 +1,315 @@
+<title>100 proyectos JS - 01 - Tinder Swipe</title>
+
+<main>
+  <section>
+    <header>
+      <img src="./tinder-logo.webp" alt="Tinder Logo" />
+    </header>
+
+    <div class="cards">
+      <article id="card">
+        <img src="./photos/2.webp" alt="Alex, brown hair, 25 years old" />
+        <h2>Alex<span>25</span></h2>
+        <div class="choice nope">NOPE</div>
+        <div class="choice like">LIKE</div>
+      </article>
+      <article id = "card">
+        <img src="./photos/1.webp" alt="Alex, brown hair, 25 years old" />
+        <h2>Leia<span>27</span></h2>
+        <div class="choice nope">NOPE</div>
+        <div class="choice like">LIKE</div>
+      </article>
+
+      <span>No hay mas personas cerca de ti...</br>
+        Vuelve a intentarlo más tarde.  
+      </span>
+    </div>
+
+    <footer>
+      <button class="is-undo" aria-label="undo"></button>
+      <button class="is-remove is-big" aria-label="remove"></button>
+      <button class="is-star" aria-label="star"></button>
+      <button class="is-fav is-big" aria-label="fav"></button>
+      <button class="is-zap" aria-label="zap"></button>
+    </footer>
+  </section>
+</main>
+
+<style>
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+      Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+      sans-serif;
+    display: grid;
+    place-content: center;
+    min-height: 100vh;
+    overflow: hidden;
+    user-select: none;
+    background: #f0f0f0;
+  }
+
+  main {
+    background: url("./iphone.webp") no-repeat;
+    width: 320px;
+    height: 640px;
+    background-size: contain;
+    display: flex;
+    filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.3));
+  }
+
+  section {
+    background-color: #fff;
+    width: 100%;
+    border-radius: 32px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    padding: 16px 6px;
+    margin: 24px;
+    gap: 24px;
+  }
+
+  header {
+    display: flex;
+    justify-content: center;
+
+    & img {
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  footer {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    padding: 0 24px;
+    justify-content: center;
+    align-items: center;
+
+    & button {
+      background: url("tinder-icons.webp") no-repeat;
+      background-position: -1px -1px;
+      background-size: 180px;
+      height: 30px;
+      width: 30px;
+      border-radius: 50%;
+      border: 0;
+      cursor: pointer;
+      transition: scale 0.3s ease;
+
+      &:hover {
+        scale: 1.4;
+      }
+
+      &.is-big {
+        background-size: 300px;
+        width: 48px;
+        height: 48px;
+      }
+
+      &.is-undo {
+        background-position: -147px -1px;
+      }
+      &.is-remove {
+        background-position: -185px -1px;
+      }
+      &.is-star {
+        background-position: -74px -1px;
+      }
+      &.is-fav {
+        background-position: -64px -1px;
+      }
+    }
+  }
+
+  .cards {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+
+
+    & > span {
+      display: grid;
+      place-content: center;
+      text-align: center;
+      color: #777;
+      font-size: 14px;
+      height: 100%;
+      z-index: -1;
+    }
+
+    & article {
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+      cursor: grab;
+      overflow: hidden;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      
+      &.go-left {
+        transform: translateX(-150%) rotate(-30deg) !important;
+      }
+
+      &.go-right {
+        transform: translateX(150%) rotate(30deg) !important;
+      }
+
+      &.go-left, &.go-right {
+        transition: transform .3s ease, rotate .3s ease;
+      }
+
+      &.reset {
+        transition: transform .3s ease;
+        transform: translateX(0) !important;
+      }
+
+      & .choice {
+        color: black;
+        border: 3px solid;
+        z-index: 9999;
+        position: absolute;
+        top: 32px;
+        right: 16px;
+        font-size: 24px;
+        font-weight: bold;
+        padding: 4px 8px;
+        text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        border-radius: 8px;
+        opacity: 0;
+        width: fit-content;
+
+        &.nope {
+          border-color: red;
+          color: red;
+          transform: rotate(30deg);
+        }
+
+        &.like {
+          border-color: greenyellow;
+          color: greenyellow;
+          transform: rotate(-30deg);
+          left: 16px;
+        }
+      }
+
+      & img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      & h2 {
+        color: white;
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: flex-end;
+        height: 100%;
+        width: 100%;
+        padding: 16px;
+        z-index: 3;
+        background: linear-gradient(to top, #00000088 20%, transparent 40%);
+      }
+
+      & span {
+        margin-left: 6px;
+        font-size: 18px;
+        line-height: 1.4;
+        font-weight: 400;
+      }
+    }
+  }
+</style>
+
+<script>
+  const DECITION_THRESHOLD = 150
+  let isAnimating = false;
+  let pullDeltaX = 0; // distancia que la card se está arrastrando
+
+  function startDrag(e) {
+    if (isAnimating) return;
+
+    // get the first article element
+    const actualCard = event.target.closest("article");    
+
+    // get initial position of mouse or finger
+    const startX = e.pageX || e.touches[0].pageX;
+
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onEnd);
+
+    document.addEventListener("touchmove", onMove, { passive: true });
+    document.addEventListener("touchend", onEnd, { passive: true });
+
+    function onMove(event) {
+      const currentX = event.pageX || event.touches[0].pageX;
+      pullDeltaX = currentX - startX;
+      if (pullDeltaX == 0) return; // no hay distancia recorrida
+
+      isAnimating = true;
+      const deg = pullDeltaX / 14;
+
+      actualCard.style.transform = `translateX(${pullDeltaX}px) rotate(${deg}deg)`;
+      actualCard.style.cursor = "grabbing";
+
+      const opacity = Math.abs(pullDeltaX) / 100
+
+      const isRight = pullDeltaX > 0
+      const choiceEl = isRight
+      ? actualCard.querySelector('.choice.like')
+      : actualCard.querySelector('.choice.nope')
+
+      choiceEl.style.opacity = opacity
+    }
+
+    function onEnd(event) {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onEnd);
+      document.removeEventListener("touchmove", onMove);
+      document.removeEventListener("touchEnd", onEnd);
+
+      // Saber si el usuario tomó una decisión
+      const decitionMade = Math.abs(pullDeltaX) >= DECITION_THRESHOLD
+
+      if(decitionMade){
+        const goRight = pullDeltaX >= 0
+        const goLeft = !goRight
+
+        // add class according to the decision
+        actualCard.classList.add(goRight ? 'go-right' : 'go-left');
+        actualCard.addEventListener('transitionend', () => {
+          actualCard.remove()
+        }, {once: true})
+        
+      }else{
+        actualCard.classList.add('reset')
+        actualCard.classList.remove('go-right', 'go-left')
+      }
+
+      //reset the variables
+      actualCard.addEventListener('transitionend', () => {
+        actualCard.removeAttribute('style')
+        actualCard.classList.remove('reset')
+
+        pullDeltaX = 0
+        isAnimating = false
+      })
+    }
+  }
+
+  document.addEventListener("mousedown", startDrag);
+  document.addEventListener("touchstart", startDrag, { passive: true });
+</script>
