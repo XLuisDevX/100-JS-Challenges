@@ -1,0 +1,243 @@
+<title>Arkanoid in JavaScript</title>
+<style>
+  body {
+    background-color: rgb(31, 31, 31);
+  }
+
+  canvas {
+    border: 4px solid white;
+    border-bottom: transparent;
+    background: url(./bkg.png) repeat;
+    margin: 0 auto;
+    display: block;
+  }
+</style>
+<canvas></canvas>
+
+<img hidden id="sprite" src="./sprite.png" alt="Sprite Arkanoid" />
+<img hidden id="bricks" src="./bricks.png" alt="Sprite Bricks Arkanoid" />
+
+<script type="module">
+  import { Ball } from "./src/Ball.js";
+  import { Paddle } from "./src/Paddle.js";
+
+  /* Game variables */
+
+  const canvas = document.querySelector("canvas");
+  const ctx = canvas.getContext("2d");
+
+  const $sprite = document.querySelector("#sprite");
+  const $bricks = document.querySelector("#bricks");
+
+  canvas.width = 476;
+  canvas.height = 424;
+
+  const ball = new Ball(canvas.width / 2, canvas.height);
+  const paddle = new Paddle((canvas.width - 50) / 2, canvas.height);
+
+  let rightPressed = false;
+  let leftPressed = false;
+
+  /*VARIABLES DE LOS LADRILLOS*/
+  const brickRowCount = 6;
+  const brickColumnCount = 13;
+  const brickWidth = 32;
+  const brickHeight = 16;
+  const brickPadding = 0;
+  const brickOffsetTop = 80;
+  const brickOffsetLeft = 16;
+  const bricks = [];
+
+  const BRICK_STATUS = {
+    ACTIVE: 1,
+    DESTROYED: 0,
+  };
+
+  for (let c = 0; c <= brickColumnCount; c++) {
+    bricks[c] = [];
+    for (let r = 0; r <= brickRowCount; r++) {
+      const brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
+      const brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
+
+      const random = Math.floor(Math.random() * 8);
+      bricks[c][r] = {
+        x: brickX,
+        y: brickY,
+        color: random,
+        status: BRICK_STATUS.ACTIVE,
+      };
+    }
+  }
+
+  const PADDLE_SENSITIVITY = 2;
+
+  function drawBall() {
+    ctx.beginPath();
+    ctx.arc(
+      ball.getBallX(),
+      ball.getBallY(),
+      ball.getBallRadius(),
+      0,
+      Math.PI * 2
+    );
+    ctx.fillStyle = "#fff";
+    ctx.fill();
+    ctx.closePath();
+  }
+
+  function drawPaddle() {
+    console.log(
+      paddle.getX(),
+      paddle.getY(),
+      paddle.getPaddleWidth(),
+      paddle.getPaddleHeight()
+    );
+    ctx.drawImage(
+      $sprite, // imagen
+      29, // clipX: coordenadas de recorte
+      174, // clipY: coordenadas de recorte
+      paddle.getPaddleWidth(), // tamaño del recorte
+      paddle.getPaddleHeight(), // tamaño del recorte
+      paddle.getX(), // posicion X del dibujo
+      paddle.getY(), // posición Y del dibujo
+      paddle.getPaddleWidth(), // ancho del dibujo
+      paddle.getPaddleHeight() // alto del dibujo
+    );
+  }
+
+  function drawBricks() {
+    for (let c = 0; c <= brickColumnCount; c++) {
+      for (let r = 0; r <= brickRowCount; r++) {
+        const currentBrick = bricks[c][r];
+        if (currentBrick.status === BRICK_STATUS.DESTROYED) continue;
+
+        const clipX = currentBrick.color * 32;
+        ctx.drawImage(
+          $bricks,
+          clipX,
+          0,
+          brickWidth,
+          brickHeight,
+          currentBrick.x,
+          currentBrick.y,
+          brickWidth,
+          brickHeight
+        );
+      }
+    }
+  }
+
+  function collisionDetection() {
+    for (let c = 0; c <= brickColumnCount; c++) {
+      for (let r = 0; r <= brickRowCount; r++) {
+        const currentBrick = bricks[c][r];
+        if (currentBrick.status === BRICK_STATUS.DESTROYED) continue;
+
+        const isBallSameXAsBrick =
+          ball.getBallX() > currentBrick.x &&
+          ball.getBallX() < currentBrick.x + brickWidth;
+
+        const isBallSameYAsBrick =
+          ball.getBallY() > currentBrick.y &&
+          ball.getBallY() < currentBrick.y + brickHeight;
+
+            if(isBallSameYAsBrick && isBallSameXAsBrick){
+                ball.setBallDY(-ball.getBallDY())
+                currentBrick.status = BRICK_STATUS.DESTROYED
+            }
+      }
+    }
+  }
+
+  function ballMovement() {
+    // Sides collision
+    if (
+      ball.getBallX() + ball.getBallDX() >
+        canvas.width - ball.getBallRadius() ||
+      ball.getBallX() + ball.getBallDX() < ball.getBallRadius()
+    ) {
+      ball.setBallDX(-ball.getBallDX());
+    }
+
+    // Top collision
+    if (ball.getBallY() + ball.getBallDY() < ball.getBallRadius()) {
+      ball.setBallDY(-ball.getBallDY());
+    }
+
+    const isSameXAsPaddleX =
+      ball.getBallX() > paddle.getX() &&
+      ball.getBallX() < paddle.getX() + paddle.getPaddleWidth();
+
+    const isTouchingPaddle = ball.getBallY() + ball.getBallDY() > paddle.getY();
+
+    if (isSameXAsPaddleX && isTouchingPaddle) {
+      ball.setBallDY(-ball.getBallDY());
+    } else if (ball.getBallY() > canvas.height) {
+      // Game Over
+      window.location.reload();
+    }
+
+    ball.updatePosition();
+  }
+
+  function paddleMovement() {
+    if (
+      rightPressed &&
+      paddle.getX() < canvas.width - paddle.getPaddleWidth()
+    ) {
+      paddle.updatePosition("right");
+    } else if (leftPressed && paddle.getX() > 0) {
+      paddle.updatePosition("left");
+    }
+  }
+
+  function clearCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  function initEvents() {
+    document.addEventListener("keydown", keyDownHandler);
+    document.addEventListener("keyup", keyUpHandler);
+
+    function keyDownHandler(event) {
+      const { key } = event;
+      if (key === "Right" || key === "ArrowRight") {
+        rightPressed = true;
+      }
+      if (key === "Left" || key === "ArrowLeft") {
+        leftPressed = true;
+      }
+    }
+
+    function keyUpHandler(event) {
+      const { key } = event;
+      if (key === "Right" || key === "ArrowRight") {
+        rightPressed = false;
+      }
+      if (key === "Left" || key === "ArrowLeft") {
+        leftPressed = false;
+      }
+    }
+  }
+
+  function draw() {
+    clearCanvas();
+
+    // Dibujar los elementos
+    drawBall();
+    drawPaddle();
+    drawBricks();
+    // drawScore()
+
+    // colisiones y movimientos
+    collisionDetection();
+    ballMovement();
+    paddleMovement();
+    // Clear screen
+
+    window.requestAnimationFrame(draw);
+  }
+
+  initEvents();
+  draw();
+</script>
